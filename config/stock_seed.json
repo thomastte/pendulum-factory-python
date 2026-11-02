@@ -1,0 +1,15 @@
+{
+  "_comment": "Fill in from the makerspace visit. Density from the manufacturer's datasheet (g/cm3). Net weight from the spool label (g).",
+  "filaments": [
+    {
+      "vendor": "Bambu Lab",
+      "name": "PLA Basic Black",
+      "material": "PLA",
+      "density": 0.0,
+      "diameter": 1.75,
+      "color_hex": "000000",
+      "net_weight": 1000,
+      "datasheet": "<URL>"
+    }
+  ]
+}
