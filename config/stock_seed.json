@@ -1,16 +1,33 @@
 {
-  "_comment": "Fill in from the makerspace visit. Density from the manufacturer's datasheet (g/cm3). Net weight from the spool label (g). spools_g: grams left on each spool of this filament (optional; without it, one full spool). Load into Spoolman with: python scripts/seed_stock.py",
+  "_comment": "Faktisk stock fra makerspace den 2026-11-03. density from the datasheet (g/cm3), net_weight from the label (g), spools_g = grams left on each spool. Load with: python scripts/seed_stock.py",
   "filaments": [
     {
-      "vendor": "Bambu Lab",
-      "name": "PLA Basic Black",
-      "material": "PLA",
-      "density": 0.0,
-      "diameter": 1.75,
-      "color_hex": "000000",
-      "net_weight": 1000,
+      "vendor": "eSUN", "name": "PLA+ White", "material": "PLA+",
+      "density": 1.23, "diameter": 1.75, "color_hex": "FFFFFF", "net_weight": 1000,
       "spools_g": [1000],
-      "datasheet": "<URL>"
+      "datasheet": "https://esun3d.com/news/7222",
+      "note": "Faktisk funnet på makerspace 2026-11-03"
+    },
+    {
+      "vendor": "eSUN", "name": "PLA+ Black", "material": "PLA+",
+      "density": 1.23, "diameter": 1.75, "color_hex": "000000", "net_weight": 1000,
+      "spools_g": [1000, 150],
+      "datasheet": "https://esun3d.com/news/7222",
+      "note": "Faktisk funnet på makerspace 2026-11-03"
+    },
+    {
+      "vendor": "eSUN", "name": "PLA+ Red", "material": "PLA+",
+      "density": 1.23, "diameter": 1.75, "color_hex": "C62828", "net_weight": 1000,
+      "spools_g": [1000],
+      "datasheet": "https://esun3d.com/news/7222",
+      "note": "Ikke funnet, kun annen farge for prosjektet"
+    },
+    {
+      "vendor": "eSUN", "name": "PLA+ Blue", "material": "PLA+",
+      "density": 1.23, "diameter": 1.75, "color_hex": "1565C0", "net_weight": 1000,
+      "spools_g": [1000],
+      "datasheet": "https://esun3d.com/news/7222",
+      "note": "Ikke funnet, kun annen farge for prosjektet"
     }
   ]
 }
