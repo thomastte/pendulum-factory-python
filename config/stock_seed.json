@@ -1,5 +1,5 @@
 {
-  "_comment": "Fill in from the makerspace visit. Density from the manufacturer's datasheet (g/cm3). Net weight from the spool label (g).",
+  "_comment": "Fill in from the makerspace visit. Density from the manufacturer's datasheet (g/cm3). Net weight from the spool label (g). spools_g: grams left on each spool of this filament (optional; without it, one full spool). Load into Spoolman with: python scripts/seed_stock.py",
   "filaments": [
     {
       "vendor": "Bambu Lab",
@@ -9,6 +9,7 @@
       "diameter": 1.75,
       "color_hex": "000000",
       "net_weight": 1000,
+      "spools_g": [1000],
       "datasheet": "<URL>"
     }
   ]
