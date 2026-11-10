@@ -1,5 +1,5 @@
 {
-  "name": "Bambu Lab P2S (A1 has the same build volume)",
+  "name": "Bambu Lab P1S",
   "build_volume_mm": [256, 256, 256],
   "margin_mm": 5,
   "nozzle_mm": 0.4,
