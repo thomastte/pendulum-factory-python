@@ -57,6 +57,12 @@ class PendulumParams:
     def AxleLength(self): 
         return self.BaseWidth + 2*(self.AxlOvr) 
 
+    def validate(self, printer):
+        problems = []
+        if self.PendClearance < 5:
+            problems.append("Arm clearance is too small, must be at least 5 mm.")
+        return problems
+
     def save(self, path):
         with open(path, "w", encoding="utf-8") as f:
             json.dump(asdict(self), f, indent=2)

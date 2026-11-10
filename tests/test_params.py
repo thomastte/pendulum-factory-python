@@ -24,4 +24,14 @@ def test_save_load(tmp_path):
     p.save(path)
     q = PendulumParams.load(path)
     assert q == p
-    
+
+def test_validate_ok():
+    printer = {"build_volume_mm": [256, 256, 256], "margin_mm": 5}
+    p = PendulumParams(BaseWidth=80, BaseDepth=80, BaseHeight=200)
+    assert p.validate(printer) == []
+
+def test_validate_pendClearance():
+    printer = {"build_volume_mm": [256, 256, 256], "margin_mm": 5}
+    p = PendulumParams(BaseWidth=80, BaseDepth=80, BaseHeight=200)
+    p.PendClearance = 3
+    assert len(p.validate(printer)) == 1
