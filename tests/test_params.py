@@ -34,4 +34,24 @@ def test_validate_pendClearance():
     printer = {"build_volume_mm": [256, 256, 256], "margin_mm": 5}
     p = PendulumParams(BaseWidth=80, BaseDepth=80, BaseHeight=200)
     p.PendClearance = 3
-    assert len(p.validate(printer)) == 1
+    assert "Arm clearance is too small, must be at least 5 mm." in p.validate(printer)
+
+def test_validate_dimension_zero():
+    printer = {"build_volume_mm": [256, 256, 256], "margin_mm": 5}
+    p = PendulumParams(BaseWidth=0, BaseDepth=80, BaseHeight=200)
+    problems = p.validate(printer)
+    assert "Base width must be positive ." in problems 
+
+def test_validate_dimension_negative():
+    printer = {"build_volume_mm": [256, 256, 256], "margin_mm": 5}
+    p = PendulumParams(BaseWidth=80, BaseDepth=80, BaseHeight=200)
+    p.AxlDia =-8
+    problems = p.validate(printer)
+    assert "Axle diameter must be positive ." in problems
+
+def test_validate_arm_length():
+    printer = {"build_volume_mm": [256, 256, 256], "margin_mm": 5}
+    p = PendulumParams(BaseWidth=80, BaseDepth=80, BaseHeight=10)
+    problems = p.validate(printer)
+    assert "Arm length must be positive ." in problems
+    assert "Base height must be positive ." not in problems

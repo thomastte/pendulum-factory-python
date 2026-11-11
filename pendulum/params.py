@@ -59,9 +59,41 @@ class PendulumParams:
 
     def validate(self, printer):
         problems = []
+        if self.BaseWidth <=0:
+            problems.append("Base width must be positive .")
+        if self.BaseDepth <=0:
+            problems.append("Base depth must be positive .")
+        if self.BaseHeight <=0:
+            problems.append("Base height must be positive .")
+        if self.AxlDia <=0:
+            problems.append("Axle diameter must be positive .")
+        if self.ArmThick <=0:
+            problems.append("Arm thickness must be positive .")
+        if self.ArmLength <= 0:
+            problems.append("Arm length must be positive .")
+        if self.AxlOvr <=0:
+            problems.append("Axle overhang must be positive .")
+        if self.ClrGap <=0:
+            problems.append("Collar gap must be positive .")
+        if self.ClrDia <=0:
+            problems.append("Collar diameter must be positive .")
+        if self.ClrThick <=0:
+            problems.append("Collar thickness must be positive .")
+        if self.PostThickness <=0:
+            problems.append("Post thickness must be positive .")
+        if self.PostDepth <=0:
+            problems.append("Post depth must be positive .")
+        if self.BaseThickness <=0:
+            problems.append("Base thickness must be positive .")
         if self.PendClearance < 5:
             problems.append("Arm clearance is too small, must be at least 5 mm.")
+        if self.SlotClearance <=0:
+            problems.append("Slot clearance must be positive .")
+        if self.SideClearance <=0:
+            problems.append("Side clearance must be positive .")
         return problems
+
+    
 
     def save(self, path):
         with open(path, "w", encoding="utf-8") as f:
