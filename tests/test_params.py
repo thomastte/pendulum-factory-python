@@ -28,6 +28,7 @@ def test_save_load(tmp_path):
 def test_validate_ok():
     printer = {"build_volume_mm": [256, 256, 256], "margin_mm": 5}
     p = PendulumParams(BaseWidth=80, BaseDepth=80, BaseHeight=200)
+    p.WeightPos = 100
     assert p.validate(printer) == []
 
 def test_validate_pendClearance():
@@ -40,18 +41,86 @@ def test_validate_dimension_zero():
     printer = {"build_volume_mm": [256, 256, 256], "margin_mm": 5}
     p = PendulumParams(BaseWidth=0, BaseDepth=80, BaseHeight=200)
     problems = p.validate(printer)
-    assert "Base width must be positive ." in problems 
+    assert "Base width must be positive." in problems 
 
 def test_validate_dimension_negative():
     printer = {"build_volume_mm": [256, 256, 256], "margin_mm": 5}
     p = PendulumParams(BaseWidth=80, BaseDepth=80, BaseHeight=200)
     p.AxlDia =-8
     problems = p.validate(printer)
-    assert "Axle diameter must be positive ." in problems
+    assert "Axle diameter must be positive." in problems
 
 def test_validate_arm_length():
     printer = {"build_volume_mm": [256, 256, 256], "margin_mm": 5}
     p = PendulumParams(BaseWidth=80, BaseDepth=80, BaseHeight=10)
     problems = p.validate(printer)
-    assert "Arm length must be positive ." in problems
-    assert "Base height must be positive ." not in problems
+    assert "Arm length must be positive." in problems
+    assert "Base height must be positive." not in problems
+
+def test_validate_base_width():
+    printer = {"build_volume_mm": [256, 256, 256], "margin_mm": 5}
+    p = PendulumParams(BaseWidth=300, BaseDepth=200, BaseHeight=200)
+    problems = p.validate(printer)
+    assert "Base too wide for printer." in problems
+
+
+# AI-assisted (Claude, 2026-11-11): tests for S2, O1 and O3-O6 below, same pattern as the S1/S3 tests. Verified: pytest.
+def test_validate_block_top():
+    printer = {"build_volume_mm": [256, 256, 256], "margin_mm": 5}
+    p = PendulumParams(BaseWidth=80, BaseDepth=80, BaseHeight=200)
+    p.WeightPos = 20    # block top at 20 - 65.1/2 = -12.55 mm, above the collar edge at 7 mm
+    problems = p.validate(printer)
+    assert "Block intersects collars." in problems
+
+def test_validate_block_bottom():
+    printer = {"build_volume_mm": [256, 256, 256], "margin_mm": 5}
+    p = PendulumParams(BaseWidth=80, BaseDepth=80, BaseHeight=200)
+    p.WeightPos = 170   # block bottom at 170 + 65.1/2 = 202.55 mm, past the arm tip at 186 mm
+    problems = p.validate(printer)
+    assert "Block extends past end of arm." in problems
+
+def test_validate_post_depth():
+    printer = {"build_volume_mm": [256, 256, 256], "margin_mm": 5}
+    p = PendulumParams(BaseWidth=80, BaseDepth=20, BaseHeight=200)
+    p.WeightPos = 100
+    problems = p.validate(printer)
+    assert "Posts are deeper than the base." in problems
+
+def test_validate_block_thickness():
+    printer = {"build_volume_mm": [256, 256, 256], "margin_mm": 5}
+    p = PendulumParams(BaseWidth=20, BaseDepth=80, BaseHeight=200)   # BlockThickness = 20 - 12 - 4 = 4
+    p.WeightPos = 100
+    problems = p.validate(printer)
+    assert "Block is not thicker than the arm." in problems
+
+def test_validate_post_gap():
+    printer = {"build_volume_mm": [256, 256, 256], "margin_mm": 5}
+    p = PendulumParams(BaseWidth=22, BaseDepth=80, BaseHeight=200)   # PostGap = 10, needs 12
+    p.WeightPos = 100
+    problems = p.validate(printer)
+    assert "Collars and arm do not fit between the posts." in problems
+    assert "Block is not thicker than the arm." not in problems
+
+def test_validate_collar_diameter():
+    printer = {"build_volume_mm": [256, 256, 256], "margin_mm": 5}
+    p = PendulumParams(BaseWidth=80, BaseDepth=80, BaseHeight=200)
+    p.WeightPos = 100
+    p.ClrDia = 6
+    problems = p.validate(printer)
+    assert "Collar diameter must be larger than the axle diameter." in problems
+
+def test_validate_collar_gap():
+    printer = {"build_volume_mm": [256, 256, 256], "margin_mm": 5}
+    p = PendulumParams(BaseWidth=80, BaseDepth=80, BaseHeight=200)
+    p.WeightPos = 100
+    p.ClrGap = 2    # equal to SideClearance, must be smaller
+    problems = p.validate(printer)
+    assert "Collar gap must be smaller than the side clearance." in problems
+
+def test_validate_slot_width():
+    printer = {"build_volume_mm": [256, 256, 256], "margin_mm": 5}
+    p = PendulumParams(BaseWidth=80, BaseDepth=80, BaseHeight=200)
+    p.WeightPos = 100
+    p.PostDepth = 8     # SlotWidth = 8.4
+    problems = p.validate(printer)
+    assert "Slot leaves no wall in the post." in problems
