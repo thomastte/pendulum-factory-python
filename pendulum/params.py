@@ -57,8 +57,10 @@ class PendulumParams:
     def AxleLength(self): 
         return self.BaseWidth + 2*(self.AxlOvr) 
 
+
     def validate(self, printer):
         problems = []
+        usable = printer["build_volume_mm"][0] - 2*printer["margin_mm"]
         if self.BaseWidth <=0:
             problems.append("Base width must be positive.")
         if self.BaseDepth <=0:
@@ -97,12 +99,25 @@ class PendulumParams:
         if self.WeightPos + self.BlockLength/2 > self.ArmLength:
             problems.append("Block extends past end of arm.")
 
-        if self.BaseWidth > 246: 
+        if self.BaseWidth > usable: 
             problems.append("Base too wide for printer.")
-        if self.BaseDepth > 246:
+        if self.BaseDepth > usable:
             problems.append("Base too deep for printer.")
-        if self.BaseHeight > 246:
+        if self.BaseHeight > usable:
             problems.append("Base too tall for printer.")
+
+        if self.BlockLengthFrac >= 1 or self.BlockLengthFrac <= 0:
+            problems.append("Block length fraction must be between 0 and 1.")
+        if self.StartAng > 90 or self.StartAng <= 0:
+            problems.append("Start angle must be between 0 and 90.")
+        if self.AxleLength > usable or self.ArmLength + self.ClrDia/2 > usable:
+            problems.append("Axle length or total length is too long for printer.")
+        if self.print_settings.infill <= 0 or self.print_settings.infill > 1:
+            problems.append("Infill must be between 0 and 1.")
+        if self.print_settings.walls < 1:
+            problems.append("Walls must be at least 1.")
+        if self.print_settings.line_width <= 0:
+            problems.append("Line width must be positive.")
 
         # AI-assisted (Claude, 2026-11-11): rules O1, O3-O6 below, same pattern as S1-S3. Verified: one test per rule, pytest.
         if self.PostDepth > self.BaseDepth:

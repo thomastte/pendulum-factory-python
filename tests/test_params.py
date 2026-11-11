@@ -124,3 +124,91 @@ def test_validate_slot_width():
     p.PostDepth = 8     # SlotWidth = 8.4
     problems = p.validate(printer)
     assert "Slot leaves no wall in the post." in problems
+
+
+# AI-assisted (Claude, 2026-11-11): tests for S4a, S4b, O2, O7 and O8 below, same pattern as the tests above. Verified: pytest.
+def test_validate_base_height():
+    printer = {"build_volume_mm": [256, 256, 256], "margin_mm": 5}
+    p = PendulumParams(BaseWidth=80, BaseDepth=80, BaseHeight=250)    # usable is 246
+    p.WeightPos = 100
+    problems = p.validate(printer)
+    assert "Base too tall for printer." in problems
+
+def test_validate_base_width_at_limit():
+    printer = {"build_volume_mm": [256, 256, 256], "margin_mm": 5}
+    p = PendulumParams(BaseWidth=246, BaseDepth=80, BaseHeight=200)   # exactly usable: the U fits
+    p.WeightPos = 100
+    problems = p.validate(printer)
+    assert "Base too wide for printer." not in problems
+
+def test_validate_reads_printer():
+    small = {"build_volume_mm": [200, 200, 200], "margin_mm": 5}     # usable 190
+    real = {"build_volume_mm": [256, 256, 256], "margin_mm": 5}      # usable 246
+    p = PendulumParams(BaseWidth=195, BaseDepth=80, BaseHeight=150)
+    p.WeightPos = 70
+    assert "Base too wide for printer." in p.validate(small)
+    assert "Base too wide for printer." not in p.validate(real)
+
+def test_validate_axle_length():
+    printer = {"build_volume_mm": [256, 256, 256], "margin_mm": 5}
+    p = PendulumParams(BaseWidth=244, BaseDepth=80, BaseHeight=200)   # AxleLength = 248, the U still fits
+    p.WeightPos = 100
+    problems = p.validate(printer)
+    assert "Axle length or total length is too long for printer." in problems
+    assert "Base too wide for printer." not in problems
+
+def test_validate_block_length_frac():
+    printer = {"build_volume_mm": [256, 256, 256], "margin_mm": 5}
+    p = PendulumParams(BaseWidth=80, BaseDepth=80, BaseHeight=200)
+    p.WeightPos = 100
+    p.BlockLengthFrac = 1    # boundary: must be less than 1
+    problems = p.validate(printer)
+    assert "Block length fraction must be between 0 and 1." in problems
+
+def test_validate_start_angle_zero():
+    printer = {"build_volume_mm": [256, 256, 256], "margin_mm": 5}
+    p = PendulumParams(BaseWidth=80, BaseDepth=80, BaseHeight=200)
+    p.WeightPos = 100
+    p.StartAng = 0    # boundary: must be greater than 0
+    problems = p.validate(printer)
+    assert "Start angle must be between 0 and 90." in problems
+
+def test_validate_start_angle_90_ok():
+    printer = {"build_volume_mm": [256, 256, 256], "margin_mm": 5}
+    p = PendulumParams(BaseWidth=80, BaseDepth=80, BaseHeight=200)
+    p.WeightPos = 100
+    p.StartAng = 90   # boundary: 90 is allowed
+    problems = p.validate(printer)
+    assert "Start angle must be between 0 and 90." not in problems
+
+def test_validate_infill_zero():
+    printer = {"build_volume_mm": [256, 256, 256], "margin_mm": 5}
+    p = PendulumParams(BaseWidth=80, BaseDepth=80, BaseHeight=200)
+    p.WeightPos = 100
+    p.print_settings.infill = 0
+    problems = p.validate(printer)
+    assert "Infill must be between 0 and 1." in problems
+
+def test_validate_infill_one_ok():
+    printer = {"build_volume_mm": [256, 256, 256], "margin_mm": 5}
+    p = PendulumParams(BaseWidth=80, BaseDepth=80, BaseHeight=200)
+    p.WeightPos = 100
+    p.print_settings.infill = 1    # solid part is allowed
+    problems = p.validate(printer)
+    assert "Infill must be between 0 and 1." not in problems
+
+def test_validate_walls():
+    printer = {"build_volume_mm": [256, 256, 256], "margin_mm": 5}
+    p = PendulumParams(BaseWidth=80, BaseDepth=80, BaseHeight=200)
+    p.WeightPos = 100
+    p.print_settings.walls = 0
+    problems = p.validate(printer)
+    assert "Walls must be at least 1." in problems
+
+def test_validate_line_width():
+    printer = {"build_volume_mm": [256, 256, 256], "margin_mm": 5}
+    p = PendulumParams(BaseWidth=80, BaseDepth=80, BaseHeight=200)
+    p.WeightPos = 100
+    p.print_settings.line_width = 0
+    problems = p.validate(printer)
+    assert "Line width must be positive." in problems
