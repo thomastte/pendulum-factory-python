@@ -1,4 +1,4 @@
-# AI-assisted (Claude, 2026-11-17): tests written by Claude.
+# AI-assisted (Claude, 2026-11-17): tests written by Claude; updated by Claude for design-decisions.md 18–20.
 # Verified: all pass; Øivind read them through and ran them before committing.
 """Tests for pendulum/variants.py, with the dummy design functions and the real simulator (C++ or SciPy)."""
 import math
@@ -19,14 +19,14 @@ def exact_ratio(deg):
 
 
 def test_more_infill_is_heavier():
-    low = make_variant("20 %", BASE_ORDER, FUNCTIONS)
-    full = make_variant("100 %", replace(BASE_ORDER, infill=1.0), FUNCTIONS)
+    low = make_variant("20 %", BASE_ORDER, FUNCTIONS, infill=0.2)
+    full = make_variant("100 %", BASE_ORDER, FUNCTIONS, infill=1.0)
     assert full.mass_g > low.mass_g
 
 
 def test_45_degrees_swings_slower_by_the_exact_amount(tmp_path):
-    v = make_variant("5°", BASE_ORDER, FUNCTIONS)
-    rows = run([v, replace(v, label="45°", amplitude_deg=45)], tmp_path, "amplitude")
+    v = make_variant("45°", BASE_ORDER, FUNCTIONS)              # designed for a 45° start
+    rows = run([replace(v, label="5°", amplitude_deg=5), v], tmp_path, "amplitude")
     t5, t45 = rows[0]["period_sim_s"], rows[1]["period_sim_s"]
     assert t45 / t5 == pytest.approx(exact_ratio(45) / exact_ratio(5), rel=1e-3)   # about 3.9 % longer
 
