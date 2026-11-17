@@ -1,4 +1,5 @@
 import cadquery as cq
+from pathlib import Path
 
 def make_axle(p):
     axle = cq.Workplane("YZ").cylinder(p.AxleLength, p.AxlDia/2)
@@ -44,3 +45,14 @@ def make_U(p):
     U = make_base(p).union(make_posts(p))
     return U
 
+
+def export_3mf(p, out_dir):
+    pendulum_print = make_pendulum(p).rotate((0, 0, 0), (1, 0, 0), 90).translate((0, 0, p.AxlDia/2))
+    u_stand_print = make_U(p).translate((0, 0, p.BaseHeight - p.AxlOff))
+    folder = Path(out_dir)
+    folder.mkdir(parents=True, exist_ok=True)
+    pendulum_file = folder / "pendulum.3mf"
+    cq.exporters.export(pendulum_print, str(pendulum_file))
+    u_stand_file = folder / "u_stand.3mf"
+    cq.exporters.export(u_stand_print, str(u_stand_file))
+    return [str(pendulum_file), str(u_stand_file)]

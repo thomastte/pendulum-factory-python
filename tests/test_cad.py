@@ -4,7 +4,9 @@ from pendulum.cad import make_collars
 from pendulum.cad import make_arm
 from pendulum.cad import make_weight
 from pendulum.cad import make_pendulum, make_base, make_posts, make_U
+from pendulum.cad import export_3mf
 import math 
+from pathlib import Path
 import pytest
 
 def test_axle_volume():
@@ -83,3 +85,13 @@ def test_U_is_one_body():
     assert u.val().Volume() == pytest.approx(make_base(p).val().Volume() + make_posts(p).val().Volume())
     bb = u.val().BoundingBox()
     assert bb.zmax - bb.zmin == pytest.approx(p.BaseHeight)   # BaseHeight from the table to the top of the posts
+
+# AI-assisted (Claude, 2026-11-17): export test, same pattern as above. Verified: pytest; the files' mesh ranges were checked by reading the 3MF (pendulum z 0-11 mm, U z 0-200 mm).
+def test_export_3mf(tmp_path):
+    p = PendulumParams(BaseWidth=80, BaseDepth=80, BaseHeight=200)
+    p.WeightPos = 120
+    files = export_3mf(p, tmp_path / "order")   # a folder that doesn't exist yet
+    assert len(files) == 2                      # one file per printed piece (decision 20)
+    for f in files:
+        assert f.endswith(".3mf")
+        assert Path(f).stat().st_size > 0        # written and not empty
