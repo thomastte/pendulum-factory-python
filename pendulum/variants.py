@@ -1,8 +1,10 @@
 # AI-assisted (Claude, 2026-11-17): written by Claude; markdown_table() rewritten by Øivind
-# from Claude's version; 90° added to the amplitude comparison with Claude's help. Verified: tests/test_variants.py.
+# from Claude's version; 90° added to the amplitude comparison with Claude's help. Updated by Claude for
+# design-decisions.md 18–20 (infill and the 45° start belong to the design, not the order). Verified: tests/test_variants.py.
 """Simulate the swing and compare two variants (the spec's "compare 2 variants", plan §3.4).
 
-1. Infill: the same order made with 20 % and with 100 % infill. Same period, different mass.
+1. Infill: the same order printed with 20 % and with 100 % infill. Same period, different mass
+   (design-decisions.md: infill can't tune the period).
 2. Amplitude: the same pendulum started at 5° and at 45°. The period grows with the amplitude.
 
 Run from the python/ folder:   python -m pendulum.variants
@@ -21,8 +23,8 @@ log = logging.getLogger(__name__)
 
 DENSITY = 1.23      # g/cm³, eSUN PLA+ (the makerspace filament, config/stock_seed.json)
 
-BASE_ORDER = Order(id="variants", customer_ref="variant study", target_period_s=0.65, amplitude_deg=5,
-                   base_width_mm=80, base_depth_mm=80, base_height_mm=200, infill=0.2,
+BASE_ORDER = Order(id="variants", customer_ref="variant study", target_period_s=0.65,
+                   base_width_mm=80, base_depth_mm=80, base_height_mm=200,
                    filament_per_part={part: 1 for part in PARTS})
 
 
@@ -51,14 +53,20 @@ class Variant:
     d: float                   # m, axle to centre of mass
 
 
-def make_variant(label, order, functions, density=DENSITY):
-    """Design the order and return it as a Variant (the swinging part in SI, as the simulator wants)."""
+def make_variant(label, order, functions, density=DENSITY, infill=None):
+    """Design the order and return it as a Variant (the swinging part in SI, as the simulator wants).
+
+    infill (0..1) overrides the print setting; the start angle is the design's (params.StartAng, 45°).
+    """
     design, all_masses, _, inertia = functions
     densities = {part: density for part in PARTS}
     params = design(order, densities)
+    if infill is not None:
+        params.print_settings.infill = infill
     masses = all_masses(params, densities)
     I, M, d = inertia(params, masses)
-    return Variant(label, order.infill, order.amplitude_deg, params.WeightPos, sum(masses.values()), I, M, d)
+    return Variant(label, params.print_settings.infill, params.StartAng, params.WeightPos,
+                   sum(masses.values()), I, M, d)
 
 
 def run(variants, out_dir, name, simulate_fn=simulate, normalise=False, title=""):
@@ -125,15 +133,15 @@ def main(out_dir=OUTPUT_DIR / "variants", functions=None, simulate_fn=simulate):
         dummy = functions[0].__module__ == "pendulum.dummies"
     note = " (DUMMY design)" if dummy else ""
 
-    low = make_variant("20 % infill", BASE_ORDER, functions)
-    full = make_variant("100 % infill", replace(BASE_ORDER, infill=1.0), functions)
+    low = make_variant("20 % infill", BASE_ORDER, functions, infill=0.2)
+    full = make_variant("100 % infill", BASE_ORDER, functions, infill=1.0)
     rows = run([low, full], out_dir, "infill", simulate_fn,
                title=f"Same order, 20 % vs 100 % infill{note}")
 
 
     wide = replace(low, label="θ₀ = 45°", amplitude_deg=45)
     widest = replace(low, label="θ₀ = 90°", amplitude_deg=90)
-    rows+= run([replace(low, label="θ₀ = 5°"), wide, widest],
+    rows+= run([replace(low, label="θ₀ = 5°", amplitude_deg=5), wide, widest],
                 out_dir, "amplitude", simulate_fn, normalise=True, title=f"Same order, 5°, 45° and 90° amplitude{note}")
 
     out_dir = Path(out_dir)

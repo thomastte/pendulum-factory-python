@@ -1,4 +1,4 @@
-# AI-assisted (Claude, 2026-11-17): tests written by Claude.
+# AI-assisted (Claude, 2026-11-17): tests written by Claude; updated by Claude for design-decisions.md 18–20.
 # Verified: all pass; Øivind read them through and ran them before committing.
 """Tests for pendulum/app.py with Flask's test client. A fake stock stands in for Spoolman."""
 import json
@@ -62,9 +62,9 @@ def fake_simulate(I, M, d, theta0, csv_path):
     return exact_period(I, M, d, math.degrees(theta0)), "fake"
 
 
-FORM = {"customer_ref": "Test", "target_period_s": "0.65", "amplitude_deg": "5", "infill_percent": "20",
+FORM = {"customer_ref": "Test", "target_period_s": "0.65",
         "base_width_mm": "80", "base_depth_mm": "80", "base_height_mm": "200",
-        "filament_stand": "1", "filament_arm": "1", "filament_axle": "1", "filament_collars": "1"}
+        "filament_u_stand": "1", "filament_pendulum": "1"}
 
 
 @pytest.fixture
@@ -96,8 +96,7 @@ def test_placing_an_order_saves_it_as_received(setup):
     assert response.status_code == 302                         # on to the orders page
     [order] = load_orders(tmp_path / "orders")
     assert order.status == RECEIVED
-    assert order.infill == pytest.approx(0.2)                  # 20 % from the form
-    assert order.filament_per_part == {"stand": 1, "arm": 1, "axle": 1, "collars": 1}
+    assert order.filament_per_part == {"u_stand": 1, "pendulum": 1}
 
 
 def test_a_bad_order_is_shown_again_and_not_saved(setup):

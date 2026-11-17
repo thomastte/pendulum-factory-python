@@ -2,18 +2,15 @@
   "id": "example-01",
   "customer_ref": "Example customer 1",
   "target_period_s": 0.65,
-  "amplitude_deg": 5.0,
-  "max_height_mm": 250,
-  "axle_diameter_mm": 5.0,
-  "max_material_g": 120,
-  "infill": 0.2,
+  "base_width_mm": 80,
+  "base_depth_mm": 80,
+  "base_height_mm": 200,
   "filament_per_part": {
-    "base": "<filament id from Spoolman>",
-    "stands": "<filament id>",
-    "arm": "<filament id>",
-    "weight": "<filament id>",
-    "axle": "<filament id>"
+    "u_stand": 1,
+    "pendulum": 2
   },
   "status": "received",
-  "reason": ""
+  "reason": "",
+  "created": "2026-11-17T18:00:00",
+  "result": {}
 }

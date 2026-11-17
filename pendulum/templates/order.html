@@ -1,4 +1,5 @@
-{# AI-assisted (Claude, 2026-11-17): order page written by Claude. Verified: tests/test_app.py, checked in the browser. #}
+{# AI-assisted (Claude, 2026-11-17): order page written by Claude; amplitude and infill fields removed and the
+   filament labels changed for design-decisions.md 18–20. Verified: tests/test_app.py, checked in the browser. #}
 {% extends "base.html" %}
 {% block title %}Order a pendulum kit{% endblock %}
 {% block content %}
@@ -18,16 +19,8 @@
       <input id="customer_ref" name="customer_ref" value="{{ form.get('customer_ref', '') }}" required>
     </div>
     <div>
-      <label for="target_period_s">Swing period [s]</label>
+      <label for="target_period_s">Swing period from a 45° start [s]</label>
       <input id="target_period_s" name="target_period_s" inputmode="decimal" value="{{ form.get('target_period_s', '0.65') }}">
-    </div>
-    <div>
-      <label for="amplitude_deg">Start angle (amplitude) [°]</label>
-      <input id="amplitude_deg" name="amplitude_deg" inputmode="decimal" value="{{ form.get('amplitude_deg', '5') }}">
-    </div>
-    <div>
-      <label for="infill_percent">Infill [%]</label>
-      <input id="infill_percent" name="infill_percent" inputmode="decimal" value="{{ form.get('infill_percent', '20') }}">
     </div>
     <div>
       <label for="base_width_mm">Base width [mm]</label>
@@ -44,7 +37,7 @@
 
     {% for part in parts %}
       <div>
-        <label for="filament_{{ part }}">Filament for the {{ part }}</label>
+        <label for="filament_{{ part }}">Filament for the {{ 'U-stand' if part == 'u_stand' else part }}</label>
         <select id="filament_{{ part }}" name="filament_{{ part }}" {{ 'disabled' if offline }}>
           <option value="">Choose…</option>
           {% for f in filaments %}
