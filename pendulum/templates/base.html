@@ -1,0 +1,60 @@
+{# AI-assisted (Claude, 2026-11-17): page layout written by Claude. Verified: tests/test_app.py, checked in the browser. #}
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Pendulum kit factory{% endblock %}</title>
+  <style>
+    :root { --ink: #1d232a; --muted: #5d6874; --line: #d9dee3; --bg: #f6f7f8; --card: #fff;
+            --accent: #b4622a; --ok: #2e7d32; --warn: #b26a00; --bad: #c62828; }
+    * { box-sizing: border-box; }
+    body { margin: 0; font: 15px/1.45 system-ui, "Segoe UI", sans-serif; color: var(--ink); background: var(--bg); }
+    header { background: var(--ink); color: #fff; padding: 12px 24px; display: flex; gap: 24px; align-items: baseline; }
+    header strong { font-size: 17px; }
+    header a { color: #cfd6dd; text-decoration: none; }
+    header a.on, header a:hover { color: #fff; }
+    main { max-width: 1100px; margin: 24px auto; padding: 0 16px; }
+    h1 { font-size: 22px; margin: 0 0 16px; }
+    h2 { font-size: 17px; margin: 28px 0 10px; }
+    .card { background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: 18px; }
+    .banner { padding: 10px 14px; border-radius: 6px; margin-bottom: 16px; }
+    .banner.bad { background: #fdecea; color: var(--bad); border: 1px solid #f5c2bd; }
+    .banner.warn { background: #fff4e0; color: #7a4a00; border: 1px solid #f3d29a; }
+    .banner.info { background: #eef4fb; color: #1f4e79; border: 1px solid #c9dcef; }
+    form.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 14px 18px; }
+    label { display: block; font-size: 13px; color: var(--muted); margin-bottom: 4px; }
+    input, select { width: 100%; padding: 7px 9px; border: 1px solid var(--line); border-radius: 5px; font: inherit; background: #fff; }
+    button { padding: 8px 16px; border: 0; border-radius: 5px; background: var(--accent); color: #fff; font: inherit; cursor: pointer; }
+    button.plain { background: #fff; color: var(--ink); border: 1px solid var(--line); }
+    button:disabled { background: #b9c0c7; cursor: not-allowed; }
+    .wide { grid-column: 1 / -1; }
+    table { width: 100%; border-collapse: collapse; background: var(--card); font-size: 14px; }
+    th, td { text-align: left; padding: 7px 9px; border-bottom: 1px solid var(--line); vertical-align: top; }
+    th { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: .03em; }
+    .num { font-variant-numeric: tabular-nums; text-align: right; }
+    .status { font-weight: 600; }
+    .status.done { color: var(--ok); } .status.rejected { color: var(--bad); }
+    .status.postponed { color: var(--warn); } .status.received { color: var(--muted); }
+    .swatch { display: inline-block; width: 12px; height: 12px; border-radius: 3px; border: 1px solid #0003; vertical-align: -1px; margin-right: 6px; }
+    .muted { color: var(--muted); }
+    .actions { display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; }
+  </style>
+</head>
+<body>
+  <header>
+    <strong>Pendulum kit factory</strong>
+    <a href="{{ url_for('order_page') }}" class="{{ 'on' if request.endpoint == 'order_page' }}">Order</a>
+    <a href="{{ url_for('orders_page') }}" class="{{ 'on' if request.endpoint == 'orders_page' }}">Orders (operator)</a>
+  </header>
+  <main>
+    {% if dummy %}
+      <div class="banner warn"><strong>Dummy design functions.</strong> Masses and periods are rough and no 3MF files are written, until the real design code is connected.</div>
+    {% endif %}
+    {% for message in get_flashed_messages() %}
+      <div class="banner info">{{ message }}</div>
+    {% endfor %}
+    {% block content %}{% endblock %}
+  </main>
+</body>
+</html>

@@ -1,0 +1,65 @@
+{# AI-assisted (Claude, 2026-11-17): order page written by Claude. Verified: tests/test_app.py, checked in the browser. #}
+{% extends "base.html" %}
+{% block title %}Order a pendulum kit{% endblock %}
+{% block content %}
+<h1>Order a pendulum kit</h1>
+
+{% if offline %}
+  <div class="banner bad"><strong>Stock is offline.</strong> Spoolman is not answering, so the order can't be placed. Start it with <code>docker compose up -d</code> and reload the page.</div>
+{% endif %}
+{% if errors %}
+  <div class="banner bad">{% for e in errors %}{{ e }}<br>{% endfor %}</div>
+{% endif %}
+
+<div class="card">
+  <form method="post" class="grid">
+    <div class="wide">
+      <label for="customer_ref">Your name or reference</label>
+      <input id="customer_ref" name="customer_ref" value="{{ form.get('customer_ref', '') }}" required>
+    </div>
+    <div>
+      <label for="target_period_s">Swing period [s]</label>
+      <input id="target_period_s" name="target_period_s" inputmode="decimal" value="{{ form.get('target_period_s', '0.65') }}">
+    </div>
+    <div>
+      <label for="amplitude_deg">Start angle (amplitude) [°]</label>
+      <input id="amplitude_deg" name="amplitude_deg" inputmode="decimal" value="{{ form.get('amplitude_deg', '5') }}">
+    </div>
+    <div>
+      <label for="infill_percent">Infill [%]</label>
+      <input id="infill_percent" name="infill_percent" inputmode="decimal" value="{{ form.get('infill_percent', '20') }}">
+    </div>
+    <div>
+      <label for="base_width_mm">Base width [mm]</label>
+      <input id="base_width_mm" name="base_width_mm" inputmode="decimal" value="{{ form.get('base_width_mm', '80') }}">
+    </div>
+    <div>
+      <label for="base_depth_mm">Base depth [mm]</label>
+      <input id="base_depth_mm" name="base_depth_mm" inputmode="decimal" value="{{ form.get('base_depth_mm', '80') }}">
+    </div>
+    <div>
+      <label for="base_height_mm">Base height [mm]</label>
+      <input id="base_height_mm" name="base_height_mm" inputmode="decimal" value="{{ form.get('base_height_mm', '200') }}">
+    </div>
+
+    {% for part in parts %}
+      <div>
+        <label for="filament_{{ part }}">Filament for the {{ part }}</label>
+        <select id="filament_{{ part }}" name="filament_{{ part }}" {{ 'disabled' if offline }}>
+          <option value="">Choose…</option>
+          {% for f in filaments %}
+            <option value="{{ f.id }}" {{ 'selected' if form.get('filament_' ~ part) == f.id|string }}>
+              {{ f.name }} · {{ f.material }} · {{ f.density }} g/cm³ · {{ f.grams_left }} g left
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+    {% endfor %}
+
+    <div class="wide">
+      <button type="submit" {{ 'disabled' if offline }}>Place order</button>
+      <span class="muted">The order is checked when it's processed; an impossible period is rejected with the possible range.</span>
+    </div>
+  </form>
+</div>
+{% endblock %}
