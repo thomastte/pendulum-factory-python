@@ -1,0 +1,60 @@
+{# AI-assisted (Claude, 2026-11-17): operator page written by Claude. Verified: tests/test_app.py, checked in the browser. #}
+{% extends "base.html" %}
+{% block title %}Orders{% endblock %}
+{% block content %}
+<h1>Orders</h1>
+
+<div class="actions">
+  <form method="post" action="{{ url_for('process_orders') }}"><button type="submit">Process orders</button></form>
+  <form method="post" action="{{ url_for('register_filaments') }}"><button type="submit" class="plain">Register makerspace filaments</button></form>
+</div>
+
+{% if orders %}
+<table>
+  <thead>
+    <tr><th>Order</th><th>Status</th><th>Reason</th><th class="num">Target [s]</th><th class="num">Calculated [s]</th>
+        <th class="num">Simulated [s]</th><th class="num">Difference [ms]</th><th>Files</th></tr>
+  </thead>
+  <tbody>
+  {% for o in orders %}
+    {% set r = o.result %}
+    <tr>
+      <td>{{ o.id }}<br><span class="muted">{{ o.customer_ref }}</span></td>
+      <td class="status {{ o.status }}">{{ o.status }}</td>
+      <td>{{ o.reason }}</td>
+      <td class="num">{{ '%.3f' % o.target_period_s if o.target_period_s is number else '' }}</td>
+      <td class="num">{{ '%.4f' % r.period_calc_s if r.period_calc_s is defined else '' }}</td>
+      <td class="num">{{ '%.4f' % r.period_sim_s if r.period_sim_s is defined else '' }}{% if r.simulator %}<br><span class="muted">{{ r.simulator }}</span>{% endif %}</td>
+      <td class="num">{{ '%+.1f' % (1000 * r.period_diff_s) if r.period_diff_s is defined else '' }}</td>
+      <td>
+        {% if o.status == DONE %}
+          <a href="{{ url_for('output_file', order_id=o.id, filename='design.json') }}">design.json</a>
+          {% if r.plot %}· <a href="{{ url_for('output_file', order_id=o.id, filename=r.plot) }}">plot</a>{% endif %}
+          {% for f in r.files %}<br><a href="{{ url_for('output_file', order_id=o.id, filename=f) }}">{{ f }}</a>{% endfor %}
+        {% endif %}
+      </td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% else %}
+  <p class="muted">No orders yet. <a href="{{ url_for('order_page') }}">Place one.</a></p>
+{% endif %}
+
+<h2>Stock in Spoolman</h2>
+{% if offline %}
+  <div class="banner bad"><strong>Stock is offline.</strong> Spoolman is not answering. Start it with <code>docker compose up -d</code>.</div>
+{% elif filaments %}
+<table>
+  <thead><tr><th>Filament</th><th>Material</th><th class="num">Density [g/cm³]</th><th class="num">Spools</th><th class="num">Left [g]</th></tr></thead>
+  <tbody>
+  {% for f in filaments %}
+    <tr><td><span class="swatch" style="background:#{{ f.color }}"></span>{{ f.name }}</td><td>{{ f.material }}</td>
+        <td class="num">{{ f.density }}</td><td class="num">{{ f.spools }}</td><td class="num">{{ f.grams_left }}</td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% else %}
+  <p class="muted">No filaments in Spoolman yet. Click "Register makerspace filaments".</p>
+{% endif %}
+{% endblock %}
