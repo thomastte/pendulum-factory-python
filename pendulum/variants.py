@@ -1,5 +1,5 @@
-# AI-assisted (Claude, 2026-11-17): written by Claude (the two variant comparisons in plan §3.4).
-# Verified: tests/test_variants.py (45° vs 5° period ratio against the exact formula); Øivind read it through.
+# AI-assisted (Claude, 2026-11-17): written by Claude; markdown_table() rewritten by Øivind
+# from Claude's version; 90° added to the amplitude comparison with Claude's help. Verified: tests/test_variants.py.
 """Simulate the swing and compare two variants (the spec's "compare 2 variants", plan §3.4).
 
 1. Infill: the same order made with 20 % and with 100 % infill. Same period, different mass.
@@ -111,10 +111,11 @@ COLUMNS = [("variant", "Variant"), ("infill_percent", "Infill [%]"), ("amplitude
 
 
 def markdown_table(rows):
-    lines = ["| " + " | ".join(h for _, h in COLUMNS) + " |", "|" + "---|" * len(COLUMNS)]
-    for r in rows:
-        lines.append("| " + " | ".join(str(r[k]) for k, _ in COLUMNS) + " |")
+    lines = ["| " + " | ".join(h for _, h in COLUMNS) + " |",   "|" + "---|" * len(COLUMNS)]
+    for row in rows:
+        lines.append("| " + " | ".join(str(row[k]) for k, _ in COLUMNS) + " |")
     return "\n".join(lines)
+
 
 
 def main(out_dir=OUTPUT_DIR / "variants", functions=None, simulate_fn=simulate):
@@ -129,9 +130,11 @@ def main(out_dir=OUTPUT_DIR / "variants", functions=None, simulate_fn=simulate):
     rows = run([low, full], out_dir, "infill", simulate_fn,
                title=f"Same order, 20 % vs 100 % infill{note}")
 
+
     wide = replace(low, label="θ₀ = 45°", amplitude_deg=45)
-    rows += run([replace(low, label="θ₀ = 5°"), wide], out_dir, "amplitude", simulate_fn, normalise=True,
-                title=f"Same pendulum, started at 5° and at 45°{note}")
+    widest = replace(low, label="θ₀ = 90°", amplitude_deg=90)
+    rows+= run([replace(low, label="θ₀ = 5°"), wide, widest],
+                out_dir, "amplitude", simulate_fn, normalise=True, title=f"Same order, 5°, 45° and 90° amplitude{note}")
 
     out_dir = Path(out_dir)
     with open(out_dir / "variants.csv", "w", newline="", encoding="utf-8") as f:

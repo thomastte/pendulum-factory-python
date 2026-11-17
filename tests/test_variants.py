@@ -46,6 +46,6 @@ def test_markdown_table_has_one_line_per_variant():
 
 def test_main_writes_both_plots_and_the_table(tmp_path):
     rows = main(tmp_path, FUNCTIONS)
-    assert len(rows) == 4
+    assert len(rows) == 5
     for name in ("variants-infill.png", "variants-amplitude.png", "variants.csv", "variants.md"):
         assert (tmp_path / name).exists()
