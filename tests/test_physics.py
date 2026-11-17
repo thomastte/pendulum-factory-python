@@ -4,7 +4,7 @@ import pytest
 
 from pendulum.cad import make_U, make_pendulum
 from pendulum.params import PendulumParams, PrintSettings
-from pendulum.physics import all_masses, part_mass
+from pendulum.physics import all_masses, inertia, part_mass
 
 
 def test_part_mass_cube():
@@ -42,3 +42,33 @@ def test_all_masses_uses_each_pieces_own_density():
     m2 = all_masses(p, {"stand": 2.0, "pendulum": 1.0})   # only the stand's filament changes
     assert m2["stand"] == pytest.approx(2 * m1["stand"])
     assert m2["pendulum"] == pytest.approx(m1["pendulum"])
+
+
+# AI-assisted (Claude, 2026-11-17): tests for inertia. Verified: pytest; the values match the
+# step-by-step hand calculation (rho = m/V, I_G = rho*J[0][0], I = I_G + m*d^2) for the same geometry.
+def test_inertia_known_values():
+    p = PendulumParams(BaseWidth=80, BaseDepth=80, BaseHeight=200)
+    p.WeightPos = 120
+    I, M, d = inertia(p, all_masses(p, {"stand": 1.24, "pendulum": 1.24}))
+    assert M == pytest.approx(0.023530, rel=1e-3)      # kg  (23.53 g)
+    assert d == pytest.approx(0.10295, rel=1e-3)       # m   (G is 102.95 mm below the axle)
+    assert I == pytest.approx(2.983e-4, rel=1e-3)      # kg·m²
+
+
+def test_inertia_parallel_axis():
+    p = PendulumParams(BaseWidth=80, BaseDepth=80, BaseHeight=200)
+    p.WeightPos = 120
+    I, M, d = inertia(p, all_masses(p, {"stand": 1.24, "pendulum": 1.24}))
+    assert I > M * d**2                                # I_G about the centre of mass is never negative
+    assert p.ArmLength / 2 / 1000 < d < p.WeightPos / 1000   # G between the arm's own centre and the block centre
+
+
+def test_inertia_grows_when_the_weight_moves_down():
+    p = PendulumParams(BaseWidth=80, BaseDepth=80, BaseHeight=200)
+    p.WeightPos = 120
+    I1, M1, d1 = inertia(p, all_masses(p, {"stand": 1.24, "pendulum": 1.24}))
+    p.WeightPos = 140
+    I2, M2, d2 = inertia(p, all_masses(p, {"stand": 1.24, "pendulum": 1.24}))
+    assert d2 > d1
+    assert I2 > I1
+    assert M2 == pytest.approx(M1)                     # same parts, only moved: the mass doesn't change

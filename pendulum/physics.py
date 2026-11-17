@@ -1,4 +1,6 @@
 from pendulum.cad import make_U, make_pendulum
+import cadquery as cq
+import math
 
 def part_mass(solid, density, settings):
     V = solid.val().Volume()
@@ -18,3 +20,14 @@ def all_masses(p, densities):
     pendulum_mass = part_mass(pendulum, densities["pendulum"], p.print_settings)
     masses = {"stand": stand_mass, "pendulum": pendulum_mass }
     return masses
+
+def inertia(p, masses):
+    solid = make_pendulum(p).val()
+    c = solid.Center()
+    V = solid.Volume()
+    J = cq. Shape.matrixOfInertia(solid)
+    m = masses["pendulum"]
+    I = m * (J[0][0] / V + c.y**2 + c.z**2) * 1e-9
+    M = masses["pendulum"]/1000
+    d = math.sqrt(c.y**2 + c.z**2)/1000
+    return I, M, d
