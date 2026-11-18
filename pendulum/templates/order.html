@@ -1,5 +1,8 @@
 {# AI-assisted (Claude, 2026-11-17): order page written by Claude; amplitude and infill fields removed and the
-   filament labels changed for design-decisions.md 18–20. Verified: tests/test_app.py, checked in the browser. #}
+   filament labels changed for design-decisions.md 18–20. Verified: tests/test_app.py, checked in the browser.
+   2026-11-18: new layout (three steps, colour swatches as radio buttons, pendulum sketch coloured by the
+   chosen filaments) put together by Øivind step by step;.
+   Verified: tests/test_app.py (8 passed), checked in the browser in both themes. #}
 {% extends "base.html" %}
 {% block title %}Order a pendulum kit{% endblock %}
 {% block content %}
@@ -13,15 +16,16 @@
 {% endif %}
 
 <div class="card">
-  <form method="post" class="grid">
+  <form method="post" class="order-layout">
+    <div class="steps">
     <div class="wide">
       <label for="customer_ref">Your name or reference</label>
       <input id="customer_ref" name="customer_ref" value="{{ form.get('customer_ref', '') }}" required>
     </div>
-    <div>
-      <label for="target_period_s">Swing period from a 45° start [s]</label>
-      <input id="target_period_s" name="target_period_s" inputmode="decimal" value="{{ form.get('target_period_s', '0.65') }}">
-    </div>
+
+        <section>
+      <h3 class="step"><span class="n">1</span>Kit size</h3>
+      <div class="row3">
     <div>
       <label for="base_width_mm">Base width [mm]</label>
       <input id="base_width_mm" name="base_width_mm" inputmode="decimal" value="{{ form.get('base_width_mm', '80') }}">
@@ -34,25 +38,80 @@
       <label for="base_height_mm">Base height [mm]</label>
       <input id="base_height_mm" name="base_height_mm" inputmode="decimal" value="{{ form.get('base_height_mm', '200') }}">
     </div>
-
+          </div>
+    </section>
+    <section>
+      <h3 class="step"><span class="n">2</span>Swing period</h3>
+    <div>
+      <label for="target_period_s">Swing period from a 45° start [s]</label>
+      <input id="target_period_s" name="target_period_s" inputmode="decimal" value="{{ form.get('target_period_s', '0.65') }}">
+    </div>
+        </section>
+            <section>
+      <h3 class="step"><span class="n">3</span>Filaments</h3>
+      <div class="row2">
     {% for part in parts %}
-      <div>
-        <label for="filament_{{ part }}">Filament for the {{ 'U-stand' if part == 'u_stand' else part }}</label>
-        <select id="filament_{{ part }}" name="filament_{{ part }}" {{ 'disabled' if offline }}>
-          <option value="">Choose…</option>
-          {% for f in filaments %}
-            <option value="{{ f.id }}" {{ 'selected' if form.get('filament_' ~ part) == f.id|string }}>
-              {{ f.name }} · {{ f.material }} · {{ f.density }} g/cm³ · {{ f.grams_left }} g left
-            </option>
-          {% endfor %}
-        </select>
-      </div>
+      <fieldset class="swatches">
+        <legend>{{ 'U-stand' if part == 'u_stand' else 'Pendulum' }}</legend>
+        {% for f in filaments %}
+          <label class="swatch-pick">
+            <input type="radio" name="filament_{{ part }}" value="{{ f.id }}" data-color="#{{ f.color }}"
+                   {{ 'checked' if form.get('filament_' ~ part) == f.id|string }} {{ 'disabled' if offline }} required>
+            <span class="dot" style="background: #{{ f.color }}"></span>
+            <span>{{ f.name }}<small>{{ f.grams_left }} g left</small></span>
+          </label>
+        {% endfor %}
+      </fieldset>
     {% endfor %}
-
+          </div>
+    </section>
+    </div>
+    <aside class="preview">
+          <svg viewBox="0 0 200 210" class="sketch" role="img" aria-label="Pendulum kit with its measures">
+      <g id="sketch-stand" fill="#9aa3ab">
+        <rect x="40" y="176" width="120" height="10" rx="2"/>
+        <rect x="40" y="30" width="10" height="146" rx="2"/>
+        <rect x="150" y="30" width="10" height="146" rx="2"/>
+      </g>
+        <line id="sketch-axle" x1="45" y1="36" x2="155" y2="36" stroke="#5d6874" stroke-width="3"/>
+      <g id="sketch-pendulum" fill="#b4622a" stroke="#b4622a" transform="rotate(-20 100 36)">
+        <line x1="100" y1="36" x2="100" y2="140" stroke-width="4"/>
+        <rect x="89" y="116" width="22" height="18" rx="3" stroke="none"/>
+      </g>
+      <g fill="none" stroke="#9aa3ab">
+        <line x1="100" y1="36" x2="100" y2="150" stroke-dasharray="3 3"/>
+        <line x1="22" y1="30" x2="22" y2="186"/>
+        <line x1="40" y1="196" x2="160" y2="196"/>
+      </g>
+      <g style="fill: var(--muted)" font-size="12">
+        <text x="8" y="112">H</text><text x="96" y="208">B</text><text x="120" y="74">45°</text>
+      </g>
+    </svg>
     <div class="wide">
       <button type="submit" {{ 'disabled' if offline }}>Place order</button>
       <span class="muted">The order is checked when it's processed; an impossible period is rejected with the possible range.</span>
     </div>
+        </aside>
   </form>
 </div>
+<script>
+  function colourOf(part) {
+    const picked = document.querySelector(`input[name="filament_${part}"]:checked`);
+    if (!picked) return null;
+    const c = picked.dataset.color.toUpperCase();
+    return c === "#FFFFFF" ? "#e4e7ea" : c;          // white would vanish on the white page
+  }
+  function paint() {
+    const stand = colourOf("u_stand"), pend = colourOf("pendulum");
+    if (stand) document.getElementById("sketch-stand").setAttribute("fill", stand);
+    if (pend) {
+      const g = document.getElementById("sketch-pendulum");
+      g.setAttribute("fill", pend);
+      g.setAttribute("stroke", pend);
+            document.getElementById("sketch-axle").setAttribute("stroke", pend);
+    }
+  }
+  document.querySelectorAll('input[type="radio"]').forEach(r => r.addEventListener("change", paint));
+  paint();
+</script>
 {% endblock %}
