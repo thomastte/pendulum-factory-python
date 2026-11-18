@@ -1,5 +1,6 @@
 {# AI-assisted (Claude, 2026-11-17): page layout written by Claude. Verified: tests/test_app.py, checked in the browser.
-   2026-11-18: CSS for the new order layout and the light/dark, added by Øivind. Verified: tests/test_app.py (8 passed), both themes checked on both pages. #}
+   2026-11-18: CSS for the new order layout and the light/dark themes with the toggle script given by Claude,
+   added by Øivind; CSS for the status lookup added step by step by øivind, with assistance from Claude. Verified: tests/test_app.py, both themes checked. #}
 <!doctype html>
 <html lang="en">
 <head>
@@ -53,6 +54,14 @@
     .swatch-pick small { display: block; font-size: 12px; color: var(--muted); }
     .swatch-pick:has(input:checked) { border-color: var(--accent); background: var(--pick); }
         .theme-toggle { margin-left: auto; padding: 4px 12px; font-size: 13px; background: transparent; color: var(--header-ink); border: 1px solid var(--header-link); }
+    .lookup { margin-top: 24px; display: grid; gap: 12px; }
+    .lookup h2 { margin: 0; }
+    .lookup-form { display: flex; gap: 10px; }
+    .lookup-form input { flex: 1; }
+    .lookup-form button { white-space: nowrap; }
+    .lookup p { margin: 0; }
+    .lookup-link { margin: -8px 0 16px; }
+    main a { color: var(--accent); }
     table { width: 100%; border-collapse: collapse; background: var(--card); font-size: 14px; }
     th, td { text-align: left; padding: 7px 9px; border-bottom: 1px solid var(--line); vertical-align: top; }
     th { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: .03em; }
