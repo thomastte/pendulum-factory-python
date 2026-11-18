@@ -1,11 +1,14 @@
 # AI-assisted (Claude, 2026-11-17): written by Claude (Flask order page and operator page, plan §6);
 # updated by Claude for design-decisions.md 18–20 (no amplitude or infill in the order, two printed pieces).
 # Verified: tests/test_app.py; Øivind ran it against Spoolman 0.27.0 and read it through before committing.
+# 2026-11-18: customer status lookup (find_orders(), GET /?ref=...) and the redirect to it after ordering,
+# added step by step by øivind, with assistance from Claude. Verified: tests/test_app.py, checked in the browser.
 """The web pages (plan §6). Start from the python/ folder with Spoolman running:
 
     python -m pendulum.app          then open http://localhost:5000
 
-/        order page: the customer fills in the pendulum and picks a filament for each part
+/        order page: the customer fills in the pendulum and picks a filament for each part;
+         /?ref=<name, reference or order id> shows the status of that customer's own orders
 /orders  operator page: register the makerspace filaments, process orders, see the results
 """
 import logging
@@ -84,6 +87,18 @@ def order_from_form(form, orders_dir):
     )
 
 
+def find_orders(orders_dir, ref):
+    """The orders whose customer reference or order id is ref, newest first.
+
+    Exact match only (case and surrounding spaces ignored), so one customer can't list everyone's orders.
+    """
+    key = ref.strip().casefold()
+    if not key:
+        return []
+    return [o for o in reversed(load_orders(orders_dir))
+            if key in (o.customer_ref.strip().casefold(), o.id.casefold())]
+
+
 def create_app(stock=None, functions=None, simulate_fn=simulate,
                orders_dir=ORDERS_DIR, output_dir=OUTPUT_DIR, seed_file=None):
     """The Flask app. Tests pass a fake stock and the dummy functions; normal use passes nothing."""
@@ -109,13 +124,17 @@ def create_app(stock=None, functions=None, simulate_fn=simulate,
             errors = check_input(order)
             if not errors:
                 order.save(orders_dir)
-                flash(f"Order {order.id} received. Click \"Process orders\" to make it.")
-                return redirect(url_for("orders_page"))
+                flash(f"Order {order.id} received. It is made when the orders are processed; "
+                      f"its status is shown below.")
+                return redirect(url_for("order_page", ref=order.customer_ref, _anchor="status"))
+        ref = request.args.get("ref", "").strip()
+        found = find_orders(orders_dir, ref) if ref else None          # None: no search yet
         try:
             filaments, offline = stock_overview(stock), False
         except StockUnavailable:
             filaments, offline = [], True
-        return render_template("order.html", filaments=filaments, offline=offline, errors=errors, form=form)
+        return render_template("order.html", filaments=filaments, offline=offline, errors=errors, form=form,
+                               ref=ref, found=found, DONE=DONE)
 
     @app.route("/orders")
     def orders_page():

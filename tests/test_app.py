@@ -1,5 +1,6 @@
 # AI-assisted (Claude, 2026-11-17): tests written by Claude; updated by Claude for design-decisions.md 18–20.
 # Verified: all pass; Øivind read them through and ran them before committing.
+# 2026-11-18: status lookup tests and the redirect check written by Claude. Verified: pytest tests/test_app.py.
 """Tests for pendulum/app.py with Flask's test client. A fake stock stands in for Spoolman."""
 import json
 import math
@@ -93,7 +94,8 @@ def test_order_page_when_spoolman_is_offline(setup):
 def test_placing_an_order_saves_it_as_received(setup):
     client, _, tmp_path = setup
     response = client.post("/", data=FORM)
-    assert response.status_code == 302                         # on to the orders page
+    assert response.status_code == 302                         # on to the customer's own status
+    assert "ref=Test" in response.headers["Location"]
     [order] = load_orders(tmp_path / "orders")
     assert order.status == RECEIVED
     assert order.filament_per_part == {"u_stand": 1, "pendulum": 1}
@@ -147,3 +149,29 @@ def test_orders_page_when_spoolman_is_offline(setup):
     client, stock, _ = setup
     stock.offline = True
     assert "Stock is offline" in client.get("/orders").get_data(as_text=True)
+
+
+def test_status_lookup_shows_only_that_customers_orders(setup):
+    client, _, tmp_path = setup
+    client.post("/", data=FORM)                                         # customer "Test"
+    client.post("/", data={**FORM, "customer_ref": "Someone else"})
+    mine = next(o for o in load_orders(tmp_path / "orders") if o.customer_ref == "Test")
+    page = client.get("/?ref= test ").get_data(as_text=True)          # case and spaces ignored
+    assert "1 order for" in page and mine.id in page and "received" in page
+    assert "Someone else" not in page
+    assert mine.id in client.get(f"/?ref={mine.id}").get_data(as_text=True)    # the order id works too
+
+
+def test_status_lookup_needs_an_exact_match(setup):
+    client, _, _ = setup
+    client.post("/", data=FORM)
+    page = client.get("/?ref=Te").get_data(as_text=True)
+    assert "No orders found" in page
+
+
+def test_status_lookup_shows_the_files_when_done(setup):
+    client, _, _ = setup
+    client.post("/", data=FORM)
+    client.post("/process")
+    page = client.get("/?ref=Test").get_data(as_text=True)
+    assert "done" in page and "plot" in page

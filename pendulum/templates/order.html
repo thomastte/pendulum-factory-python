@@ -1,12 +1,14 @@
 {# AI-assisted (Claude, 2026-11-17): order page written by Claude; amplitude and infill fields removed and the
    filament labels changed for design-decisions.md 18–20. Verified: tests/test_app.py, checked in the browser.
    2026-11-18: new layout (three steps, colour swatches as radio buttons, pendulum sketch coloured by the
-   chosen filaments) put together by Øivind step by step;.
-   Verified: tests/test_app.py (8 passed), checked in the browser in both themes. #}
+   chosen filaments) put together by Øivind step by step; the snippets, the SVG and the scripts were given by Claude.
+   2026-11-18: "Check your order" status lookup added step by step by øivind, with assistance from Claude.
+   Verified: tests/test_app.py, checked in the browser in both themes. #}
 {% extends "base.html" %}
 {% block title %}Order a pendulum kit{% endblock %}
 {% block content %}
 <h1>Order a pendulum kit</h1>
+<p class="muted lookup-link"><a href="#status">Already ordered? Check your order's status</a></p>
 
 {% if offline %}
   <div class="banner bad"><strong>Stock is offline.</strong> Spoolman is not answering, so the order can't be placed. Start it with <code>docker compose up -d</code> and reload the page.</div>
@@ -93,6 +95,38 @@
     </div>
         </aside>
   </form>
+</div>
+
+<div class="card lookup" id="status">
+  <h2>Check your order</h2>
+  <form method="get" action="{{ url_for('order_page') }}#status" class="lookup-form">
+    <input name="ref" value="{{ ref }}" placeholder="Your name, reference or order id"
+           aria-label="Your name, reference or order id">
+    <button type="submit" class="plain">Check status</button>
+  </form>
+  {% if found is not none %}
+    {% if found %}
+      <p class="muted">{{ found|length }} order{{ 's' if found|length != 1 }} for «{{ ref }}», newest first.</p>
+      <table class="lookup-table">
+        {% for o in found %}
+          {% set r = o.result %}
+          <tr>
+            <td>{{ o.id }}<br><span class="muted">{{ o.created[:16]|replace('T', ' ') }}
+              · {{ '%.3f s' % o.target_period_s if o.target_period_s is number else '' }}</span></td>
+            <td class="status {{ o.status }}">{{ o.status }}</td>
+            <td>{{ o.reason or "Waiting to be processed." }}
+              {% if o.status == DONE %}
+                <br>{% for f in r.files %}<a href="{{ url_for('output_file', order_id=o.id, filename=f) }}">{{ f }}</a> · {% endfor %}
+                {% if r.plot %}<a href="{{ url_for('output_file', order_id=o.id, filename=r.plot) }}">plot</a>{% endif %}
+              {% endif %}
+            </td>
+          </tr>
+        {% endfor %}
+      </table>
+    {% else %}
+      <p class="muted">No orders found for «{{ ref }}». Use the exact name or reference you ordered with, or the order id.</p>
+    {% endif %}
+  {% endif %}
 </div>
 <script>
   function colourOf(part) {
