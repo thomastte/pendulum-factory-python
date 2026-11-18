@@ -1,4 +1,5 @@
-# AI-assisted (Claude, 2026-11-17): written by Claude (Flask order page and operator page, plan §6).
+# AI-assisted (Claude, 2026-11-17): written by Claude (Flask order page and operator page, plan §6);
+# updated by Claude for design-decisions.md 18–20 (no amplitude or infill in the order, two printed pieces).
 # Verified: tests/test_app.py; Øivind ran it against Spoolman 0.27.0 and read it through before committing.
 """The web pages (plan §6). Start from the python/ folder with Spoolman running:
 
@@ -76,11 +77,9 @@ def order_from_form(form, orders_dir):
         id=new_order_id(orders_dir),
         customer_ref=form.get("customer_ref", "").strip(),
         target_period_s=_number(form.get("target_period_s")),
-        amplitude_deg=_number(form.get("amplitude_deg")),
         base_width_mm=_number(form.get("base_width_mm")),
         base_depth_mm=_number(form.get("base_depth_mm")),
         base_height_mm=_number(form.get("base_height_mm")),
-        infill=_number(form.get("infill_percent"), scale=0.01),
         filament_per_part={part: _filament_id(form.get(f"filament_{part}", "")) for part in PARTS},
     )
 

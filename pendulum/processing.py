@@ -1,4 +1,6 @@
 # AI-assisted (Claude, 2026-11-17): written by Claude (Order, OrderProcessor, the plan §4 flow).
+# Adapted by Øivind to design-decisions.md 18–20 (two printed pieces, 45° start from params.StartAng,
+# no amplitude or infill in the order).
 # Verified: tests/test_processing.py; Øivind read it through before committing.
 """Order processing: one order from "received" to "done", following the activity diagram in plan §4.
 
@@ -25,7 +27,7 @@ OUTPUT_DIR = PY_ROOT / "output"                    # design.json, 3MF, sim.csv, 
 PRINTER_FILE = PY_ROOT / "config" / "printer.json"
 
 # The printed parts. Must match the keys of Thomas's all_masses(): change them here if his change.
-PARTS = ("stand", "arm", "axle", "collars")
+PARTS = ("u_stand", "pendulum")
 
 RECEIVED, POSTPONED, REJECTED, DONE = "received", "postponed", "rejected", "done"
 G = 9.81
@@ -40,11 +42,11 @@ class Order:
     id: str
     customer_ref: str
     target_period_s: float
-    amplitude_deg: float
+
     base_width_mm: float
     base_depth_mm: float
     base_height_mm: float
-    infill: float                       # 0..1
+                  # 0..1
     filament_per_part: dict             # {part: Spoolman filament id}
     status: str = RECEIVED
     reason: str = ""
@@ -87,14 +89,12 @@ def check_input(order):
     problems = []
     if not (_number(order.target_period_s) and order.target_period_s > 0):
         problems.append("The period must be a number above 0 s.")
-    if not (_number(order.amplitude_deg) and 0 < order.amplitude_deg <= 90):
-        problems.append("The amplitude must be above 0 and at most 90 degrees.")
+    
     for name, label in (("base_width_mm", "width"), ("base_depth_mm", "depth"), ("base_height_mm", "height")):
         value = getattr(order, name)
         if not (_number(value) and value > 0):
             problems.append(f"The base {label} must be a number above 0 mm.")
-    if not (_number(order.infill) and 0 < order.infill <= 1):
-        problems.append("The infill must be above 0 and at most 100 %.")
+   
     missing = [part for part in PARTS if not order.filament_per_part.get(part)]
     if missing:
         problems.append("No filament chosen for: " + ", ".join(missing) + ".")
@@ -210,8 +210,8 @@ class OrderProcessor:
         params.save(out / "design.json")
         files = self.export_3mf(params, out)
         I, M, d = self.inertia(params, masses)
-        calc = exact_period(I, M, d, order.amplitude_deg)
-        sim, backend = self.simulate(I, M, d, math.radians(order.amplitude_deg), out / "sim.csv")
+        calc = exact_period(I, M, d, params.StartAng)
+        sim, backend = self.simulate(I, M, d, math.radians(params.StartAng), out / "sim.csv")
         plot = _plot_swing(out / "sim.csv", out / "plot.png", f"{order.id}: T = {sim:.3f} s")
 
         # Filament is subtracted last, so an order that fails earlier uses none.

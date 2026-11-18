@@ -1,4 +1,5 @@
-# AI-assisted (Claude, 2026-11-17): tests written by Claude.
+# AI-assisted (Claude, 2026-11-17): tests written by Claude; updated by Claude for design-decisions.md 18–20
+# (two printed pieces, 45° start, no amplitude or infill in the order).
 # Verified: all pass; Øivind read them through and ran them before committing.
 """Tests for pendulum/processing.py: every branch of the activity diagram in plan §4.
 
@@ -53,9 +54,9 @@ def fake_simulate(I, M, d, theta0, csv_path):
 
 
 def make_order(**changes):
-    o = Order(id="order-1", customer_ref="Test", target_period_s=0.65, amplitude_deg=5,
-              base_width_mm=80, base_depth_mm=80, base_height_mm=200, infill=0.2,
-              filament_per_part={"stand": 1, "arm": 2, "axle": 1, "collars": 1})
+    o = Order(id="order-1", customer_ref="Test", target_period_s=0.65,
+              base_width_mm=80, base_depth_mm=80, base_height_mm=200,
+              filament_per_part={"u_stand": 1, "pendulum": 2})
     for key, value in changes.items():
         setattr(o, key, value)
     return o
@@ -74,9 +75,9 @@ def test_valid_order_has_no_input_problems():
 
 
 @pytest.mark.parametrize("changes", [
-    {"target_period_s": 0}, {"amplitude_deg": 95}, {"base_height_mm": -1},
-    {"infill": 0}, {"infill": "20"}, {"filament_per_part": {"stand": 1}},
-    {"filament_per_part": {"stand": "abc", "arm": 1, "axle": 1, "collars": 1}},
+    {"target_period_s": 0}, {"target_period_s": "0.65"}, {"base_height_mm": -1},
+    {"filament_per_part": {"u_stand": 1}},
+    {"filament_per_part": {"u_stand": "abc", "pendulum": 1}},
 ])
 def test_bad_input_is_a_problem(changes):
     assert check_input(make_order(**changes))
@@ -117,14 +118,14 @@ def test_used_grams_are_the_parts_on_each_filament_plus_waste(tmp_path):
     o = processor(tmp_path, stock).process(make_order())
     m = o.result["masses_g"]
     used = dict(stock.used)
-    assert used[11] == pytest.approx(round(m["arm"] * 1.1, 1), abs=0.2)
-    assert used[10] == pytest.approx(round((m["stand"] + m["axle"] + m["collars"]) * 1.1, 1), abs=0.2)
+    assert used[11] == pytest.approx(round(m["pendulum"] * 1.1, 1), abs=0.2)
+    assert used[10] == pytest.approx(round(m["u_stand"] * 1.1, 1), abs=0.2)
 
 
 def test_bad_input_is_rejected_without_asking_spoolman(tmp_path):
     stock = FakeStock(offline=True)                 # would postpone if it were asked
-    o = processor(tmp_path, stock).process(make_order(infill=2))
-    assert o.status == REJECTED and "infill" in o.reason
+    o = processor(tmp_path, stock).process(make_order(target_period_s=0))
+    assert o.status == REJECTED and "period" in o.reason
 
 
 def test_spoolman_offline_postpones(tmp_path):
@@ -133,7 +134,7 @@ def test_spoolman_offline_postpones(tmp_path):
 
 
 def test_unknown_filament_is_rejected(tmp_path):
-    o = processor(tmp_path).process(make_order(filament_per_part={"stand": 9, "arm": 1, "axle": 1, "collars": 1}))
+    o = processor(tmp_path).process(make_order(filament_per_part={"u_stand": 9, "pendulum": 1}))
     assert o.status == REJECTED and "9" in o.reason
 
 
