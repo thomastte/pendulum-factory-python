@@ -1,6 +1,7 @@
 # AI-assisted (Claude, 2026-11-17): tests written by Claude; updated by Claude for design-decisions.md 18–20.
 # 2026-11-18: status lookup tests and the redirect check written by Claude.
 # Reviewed, run and checked by Øivind.
+# 2026-11-19, written by Øivind himself: test_orders_page_counts_the_statuses. Claude only set the task.
 """Tests for pendulum/app.py with Flask's test client. A fake stock stands in for Spoolman."""
 import json
 import math
@@ -175,3 +176,11 @@ def test_status_lookup_shows_the_files_when_done(setup):
     client.post("/process")
     page = client.get("/?ref=Test").get_data(as_text=True)
     assert "done" in page and "plot" in page
+
+def test_orders_page_counts_the_statuses(setup):
+    client, _, _ = setup
+    client.post("/", data=FORM)                                         # 0.65 s: done
+    client.post("/", data={**FORM, "target_period_s": "0.2"})           # 0.2 s: rejected
+    client.post("/process")
+    page = client.get("/orders").get_data(as_text=True)
+    assert "1 done" in page and "1 rejected" in page

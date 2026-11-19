@@ -1,4 +1,6 @@
 # AI-assisted (Claude, 2026-11-03): tests written by Claude. Reviewed, run and checked by Øivind.
+# 2026-11-19, written by Øivind himself: test_need_adds_parts_on_same_filament_and_waste (rewritten for
+# the two printed pieces) and test_pick_uses_the_150_g_black_spool_when_it_is_enough. Claude only set the task.
 """Tests for pendulum/stock.py.
 
 None of them need Spoolman, except the integration test at the bottom:

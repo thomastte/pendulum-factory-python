@@ -1,6 +1,7 @@
 {# AI-assisted (Claude, 2026-11-17): operator page written by Claude. Reviewed and checked by Øivind.
    Verified: tests/test_app.py; Øivind tested it with real orders (done, rejected and postponed with
-   Spoolman stopped) on 2026-11-18. #}
+   Spoolman stopped) on 2026-11-18.
+   2026-11-19, written by Øivind himself: the status counts above the table. Claude only set the task. #}
 {% extends "base.html" %}
 {% block title %}Orders{% endblock %}
 {% block content %}
@@ -12,6 +13,9 @@
 </div>
 
 {% if orders %}
+<p class="muted">
+  {% for status, n in status_counts %}{{ n }} {{ status }}{% if not loop.last %} · {% endif %}{% endfor %}
+</p>
 <table>
   <thead>
     <tr><th>Order</th><th>Status</th><th>Reason</th><th class="num">Target [s]</th><th class="num">Calculated [s]</th>

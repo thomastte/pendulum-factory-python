@@ -1,5 +1,7 @@
 # AI-assisted (Claude, 2026-11-17): tests written by Claude; updated by Claude for design-decisions.md 18–20.
 # Reviewed, run and checked by Øivind.
+# 2026-11-19: test_an_empty_name_is_rejected written by Øivind himself. Claude only set the task
+# (the test's name and what it should check).
 """Tests for pendulum/processing.py: every branch of the activity diagram in plan §4.
 
 FakeStock stands in for Spoolman; the design functions are the dummies. One test runs the

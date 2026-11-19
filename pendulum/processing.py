@@ -3,6 +3,8 @@
 # params.StartAng, no amplitude or infill in the order). Reviewed and checked by Øivind.
 # Verified: tests/test_processing.py; Øivind ran the full flow with the real physics (done, rejected and
 # postponed) on 2026-11-18.
+# 2026-11-19, written by Øivind himself: the name/reference rule in check_input() and the numbered
+# step comments in _run(). Claude only set the task.
 """Order processing: one order from "received" to "done", following the activity diagram in plan §4.
 
 Thomas's design functions (plan §8) are passed in, so this module runs and is tested before
