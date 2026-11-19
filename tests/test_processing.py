@@ -73,6 +73,11 @@ def test_valid_order_has_no_input_problems():
     assert check_input(make_order()) == []
 
 
+def test_an_empty_name_is_rejected():
+    problems = check_input(make_order(customer_ref="   "))
+    assert len(problems) == 1
+    assert "name" in problems[0]
+
 @pytest.mark.parametrize("changes", [
     {"target_period_s": 0}, {"target_period_s": "0.65"}, {"base_height_mm": -1},
     {"filament_per_part": {"u_stand": 1}},

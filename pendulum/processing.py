@@ -48,7 +48,7 @@ class Order:
     base_depth_mm: float
     base_height_mm: float
                   # 0..1
-    filament_per_part: dict             # {part: Spoolman filament id}
+    filament_per_part: dict     # {part: Spoolman filament id}
     status: str = RECEIVED
     reason: str = ""
     created: str = field(default_factory=lambda: datetime.now().isoformat(timespec="seconds"))
@@ -88,6 +88,10 @@ def _number(x):
 def check_input(order):
     """Problems with the order's own fields (plan §4, first step). An empty list means OK."""
     problems = []
+    ref = getattr(order, "customer_ref", None)
+    if not isinstance(ref, str) or not ref.strip():
+        problems.append("A name or reference is needed boss, so you can look up your order later.")
+    
     if not (_number(order.target_period_s) and order.target_period_s > 0):
         problems.append("The period must be a number above 0 s.")
     
@@ -171,31 +175,39 @@ class OrderProcessor:
         return order
 
     def _run(self, order):
+        # 1. Første sjekk. check_input() ser bare på feltene i ordren. Er noe feil blir det REJECTED,
+#    ordren blir ikke bedre av en retry.
         problems = check_input(order)
         if problems:
             return self._finish(order, REJECTED, " ".join(problems))
-
+       # 2. Henter stock fra Spoolman. Er Spoolman nede kommer StockUnavailable og ordren blir POSTPONED.
+#    Ikke kundens feil, så den prøves igjen neste gang.
         try:
             filaments = {f["id"]: f for f in self.stock.get_filaments()}
             spools = self.stock.get_spools()
         except StockUnavailable as e:
             return self._finish(order, POSTPONED, f"Stock is offline: {e}")
+# 3. Filament-id som ikke finnes i Spoolman = REJECTED. Ellers henter vi density for hver del.
 
         chosen = {part: int(order.filament_per_part[part]) for part in PARTS}
         unknown = sorted({fid for fid in chosen.values() if fid not in filaments})
         if unknown:
             return self._finish(order, REJECTED, f"Filament id {unknown} is not in Spoolman.")
         densities = {part: filaments[fid]["density"] for part, fid in chosen.items()}
-
+# 4. design() (Thomas sin) finner hvor loddet må sitte for å få riktig periode.
+#    InfeasibleDesign = ingen posisjon funker, så REJECTED.
         try:
             params = self.design(order, densities)
         except InfeasibleDesign as e:
             return self._finish(order, REJECTED, str(e))
+# 5. validate() sjekker designet mot printer.json, feks om delene får plass. Funker det ikke = REJECTED.
 
         problems = params.validate(self.printer)
         if problems:
             return self._finish(order, REJECTED, " ".join(problems))
-
+# 6. all_masses() gir gram per del, need_per_filament() plusser sammen per filament.
+#    pick_spools() finner spools med nok, men trekker ingenting enda. For lite filament = POSTPONED,
+#    lageret kan jo fylles på
         masses = self.all_masses(params, densities)
         need = need_per_filament(masses, chosen)
         # A retry after Spoolman dropped out while registering: filaments already subtracted are skipped.
@@ -205,17 +217,24 @@ class OrderProcessor:
             picked = pick_spools(todo, spools)
         except InsufficientMaterial as e:
             return self._finish(order, POSTPONED, f"Not enough filament. {e}.")
-
+# 7. Lagrer design.json og 3MF-filene i output/<ordre-id>/.
         out = self.output_dir / order.id
         out.mkdir(parents=True, exist_ok=True)
         params.save(out / "design.json")
         files = self.export_3mf(params, out)
+# 8. inertia() gir I, M og d. exact_period() regner perioden med elliptic integral (funker på 45°,
+#    ikke bare small angles), simulate() gjør det numerisk. To metoder som sjekker hverandre.
+#    NB: exact_period() vil ha grader, simulate() radianer.
+
         I, M, d = self.inertia(params, masses)
         calc = exact_period(I, M, d, params.StartAng)
         sim, backend = self.simulate(I, M, d, math.radians(params.StartAng), out / "sim.csv")
         plot = _plot_swing(out / "sim.csv", out / "plot.png", f"{order.id}: T = {sim:.3f} s")
-
-        # Filament is subtracted last, so an order that fails earlier uses none.
+# 9. Filament trekkes helt sist fordi det er det eneste som faktisk endrer noe i det ekte lageret.
+#    Kræsjer noe før det, er ingenting brukt. registered husker hva som alt er trukket, så hvis
+#    Spoolman dauer midt i blir ingenting trukket dobbelt på retry. str(fid) fordi JSON keys
+#    alltid blir strings.
+        
         try:
             for fid, spool_id in picked.items():
                 self.stock.use(spool_id, todo[fid])
