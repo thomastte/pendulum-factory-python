@@ -1,10 +1,12 @@
-# Python 3.11 or 3.12.
-# DRAFT: once everything works on both computers, replace each line with the exact
-# installed version from `pip freeze` (e.g. cadquery==X.Y.Z) so assessment uses the same versions.
-cadquery
-numpy
-scipy
-flask
-requests
-matplotlib
-pytest
+# AI-assisted (Claude, 2026-11-19): versions read from Øivind's venv and checked for all three OSes by
+# Claude at Øivind's request. Reviewed and checked by Øivind.
+# Python 3.12 (numpy 2.5 and scipy 1.18 need 3.12 or newer; CadQuery does not support 3.13 yet).
+# The direct dependencies, pinned to the versions the project was developed and tested with
+# (pip freeze on Windows, 2026-11-19). Wheels exist for Windows, macOS (Intel and Apple Silicon) and Linux.
+cadquery==2.8.0
+numpy==2.5.4
+scipy==1.18.1
+flask==3.1.3
+requests==2.34.2
+matplotlib==3.11.2
+pytest==9.2.0

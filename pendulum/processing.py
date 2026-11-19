@@ -1,7 +1,8 @@
 # AI-assisted (Claude, 2026-11-17): written by Claude (Order, OrderProcessor, the plan §4 flow).
-# Adapted by Øivind to design-decisions.md 18–20 (two printed pieces, 45° start from params.StartAng,
-# no amplitude or infill in the order).
-# Verified: tests/test_processing.py; Øivind read it through before committing.
+# Further developed by Øivind for design-decisions.md 18–20 (two printed pieces, 45° start from
+# params.StartAng, no amplitude or infill in the order). Reviewed and checked by Øivind.
+# Verified: tests/test_processing.py; Øivind ran the full flow with the real physics (done, rejected and
+# postponed) on 2026-11-18.
 """Order processing: one order from "received" to "done", following the activity diagram in plan §4.
 
 Thomas's design functions (plan §8) are passed in, so this module runs and is tested before

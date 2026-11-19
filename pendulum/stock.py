@@ -1,5 +1,6 @@
 # AI-assisted (Claude, 2026-11-03): written by Claude (SpoolmanClient, need_per_filament, pick_spools).
-# Verified: tests/test_stock.py; Øivind read it through before committing.
+# Reviewed and checked by Øivind. Verified: tests/test_stock.py; Øivind ran the integration test against
+# Spoolman 0.27.0 and tested it end to end with real orders.
 """Material stock: talk to Spoolman over its REST API.
 
 Paths and field names are checked against Spoolman v0.27.0 (spoolman/api/v1/ in its source).

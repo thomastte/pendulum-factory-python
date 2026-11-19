@@ -1,0 +1,16 @@
+{
+  "id": "example-04",
+  "customer_ref": "Example customer 4",
+  "target_period_s": 0.3,
+  "base_width_mm": 80,
+  "base_depth_mm": 80,
+  "base_height_mm": 200,
+  "filament_per_part": {
+    "u_stand": 1,
+    "pendulum": 1
+  },
+  "status": "received",
+  "reason": "",
+  "created": "2026-11-19T12:03:00",
+  "result": {}
+}

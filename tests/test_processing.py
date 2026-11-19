@@ -1,6 +1,5 @@
-# AI-assisted (Claude, 2026-11-17): tests written by Claude; updated by Claude for design-decisions.md 18–20
-# (two printed pieces, 45° start, no amplitude or infill in the order).
-# Verified: all pass; Øivind read them through and ran them before committing.
+# AI-assisted (Claude, 2026-11-17): tests written by Claude; updated by Claude for design-decisions.md 18–20.
+# Reviewed, run and checked by Øivind.
 """Tests for pendulum/processing.py: every branch of the activity diagram in plan §4.
 
 FakeStock stands in for Spoolman; the design functions are the dummies. One test runs the

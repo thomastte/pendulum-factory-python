@@ -1,5 +1,4 @@
-# AI-assisted (Claude, 2026-11-03): tests written by Claude.
-# Verified: all pass; Øivind read them through and ran them before committing.
+# AI-assisted (Claude, 2026-11-03): tests written by Claude. Reviewed, run and checked by Øivind.
 """Tests for pendulum/stock.py.
 
 None of them need Spoolman, except the integration test at the bottom:

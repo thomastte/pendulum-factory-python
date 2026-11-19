@@ -1,6 +1,7 @@
-# AI-assisted (Claude, 2026-11-03): written by Claude.
+# AI-assisted (Claude, 2026-11-03): written by Claude. The stock it loads (config/stock_seed.json) is from
+# Øivind's survey of the UiA makerspace on 2026-11-03. Reviewed and checked by Øivind.
 # Verified: tests/test_seed_stock.py; run twice against Spoolman 0.27.0 (first adds, then skips all);
-# Øivind read it through before committing.
+# Øivind used it to reset the stock on 2026-11-19.
 """Load the filament stock into Spoolman from config/stock_seed.json.
 
 Run from the python/ folder, with Spoolman running (docker compose up -d):

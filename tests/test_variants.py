@@ -1,5 +1,5 @@
 # AI-assisted (Claude, 2026-11-17): tests written by Claude; updated by Claude for design-decisions.md 18–20.
-# Verified: all pass; Øivind read them through and ran them before committing.
+# Reviewed, run and checked by Øivind.
 """Tests for pendulum/variants.py, with the dummy design functions and the real simulator (C++ or SciPy)."""
 import math
 from dataclasses import replace
