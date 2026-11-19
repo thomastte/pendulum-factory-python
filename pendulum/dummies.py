@@ -1,6 +1,6 @@
-# AI-assisted (Claude, 2026-11-17): stand-ins written by Claude so processing.py can run before
-# the real design functions exist. Adapted by Øivind to two printed pieces and the 45° start.
-# Verified: tests/test_processing.py; Øivind read it through.
+# AI-assisted (Claude, 2026-11-17): stand-ins written by Claude so processing.py can run before the real
+# design functions existed. Further developed by Øivind for two printed pieces and the 45° start.
+# Reviewed and checked by Øivind. Verified: tests/test_processing.py.
 """DUMMY versions of Thomas's design functions (plan §8). The numbers are rough, and no 3MF is written.
 
 Used only until the integration: then app.py takes design(), all_masses(), export_3mf() and

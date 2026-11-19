@@ -1,6 +1,6 @@
-# AI-assisted (Claude, 2026-11-17): written by Claude; markdown_table() rewritten by Øivind
-# from Claude's version; 90° added to the amplitude comparison with Claude's help. Updated by Claude for
-# design-decisions.md 18–20 (infill and the 45° start belong to the design, not the order). Verified: tests/test_variants.py.
+# AI-assisted (Claude, 2026-11-17): written by Claude; markdown_table() rewritten by Øivind from Claude's
+# version, and 90° added to the amplitude comparison by Øivind with Claude's help. Updated by Claude for
+# design-decisions.md 18–20. Reviewed and checked by Øivind. Verified: tests/test_variants.py.
 """Simulate the swing and compare two variants (the spec's "compare 2 variants", plan §3.4).
 
 1. Infill: the same order printed with 20 % and with 100 % infill. Same period, different mass

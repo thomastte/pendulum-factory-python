@@ -1,8 +1,8 @@
 # AI-assisted (Claude, 2026-11-17): written by Claude (Flask order page and operator page, plan §6);
-# updated by Claude for design-decisions.md 18–20 (no amplitude or infill in the order, two printed pieces).
-# Verified: tests/test_app.py; Øivind ran it against Spoolman 0.27.0 and read it through before committing.
-# 2026-11-18: customer status lookup (find_orders(), GET /?ref=...) and the redirect to it after ordering,
-# added step by step by øivind, with assistance from Claude. Verified: tests/test_app.py, checked in the browser.
+# updated by Claude for design-decisions.md 18–20. Reviewed and checked by Øivind.
+# 2026-11-18: customer status lookup, Øivind's idea and spec (customers look up their own orders by name or
+# reference on the order page, without the operator page); code written by Claude at his request.
+# Verified: tests/test_app.py; Øivind ran it against Spoolman 0.27.0 and tested it in the browser.
 """The web pages (plan §6). Start from the python/ folder with Spoolman running:
 
     python -m pendulum.app          then open http://localhost:5000
