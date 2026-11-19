@@ -1,4 +1,6 @@
 # AI-assisted (Claude, 2026-11-03): tests written by Claude. Reviewed, run and checked by Øivind.
+# 2026-11-19, written by Øivind himself: test_need_adds_parts_on_same_filament_and_waste (rewritten for
+# the two printed pieces) and test_pick_uses_the_150_g_black_spool_when_it_is_enough. Claude only set the task.
 """Tests for pendulum/stock.py.
 
 None of them need Spoolman, except the integration test at the bottom:
@@ -92,11 +94,12 @@ def test_create_filament_leaves_out_none(sent):
 
 
 # --- need_per_filament ----------------------------------------------------------------
-
+#Kodet selv
 def test_need_adds_parts_on_same_filament_and_waste():
-    masses = {"base": 10.0, "arm": 20.0, "weight": 5.0}
-    filament = {"base": 1, "arm": 1, "weight": 2}
-    assert need_per_filament(masses, filament, waste=1.1) == pytest.approx({1: 33.0, 2: 5.5})
+    masses = {"u_stand": 60.0, "pendulum": 23.3}
+    filament = {"u_stand": 4, "pendulum": 4}
+    # (60,0 + 23,3) * 1,1 = 83,3 * 1,1 = 91,63
+    assert need_per_filament(masses, filament, waste=1.1) == pytest.approx({4: 91.63})
 
 
 def test_need_turns_filament_ids_into_int():
@@ -110,12 +113,18 @@ def test_need_raises_when_a_part_has_no_filament():
 
 
 # --- pick_spools --------------------------------------------------------------------------
+#Gjort sjæl 
+def test_pick_uses_the_150_g_black_spool_when_it_is_enough():
+    black = 2
+    big, small = 21, 22  # spole-id-er, valgt fritt
+    spools = [spool(big, black, 1000), spool(small, black, 150)]
+    assert pick_spools({black: 25.7}, spools) == {black: small}
+    assert pick_spools({black: 200}, spools) == {black: big}
 
 def test_pick_takes_the_smallest_spool_that_is_enough():
     spools = [spool(11, 1, 50), spool(12, 1, 150), spool(13, 1, 900), spool(21, 2, 1000)]
     assert pick_spools({1: 100}, spools) == {1: 12}
-
-
+    
 def test_pick_one_spool_per_filament():
     spools = [spool(11, 1, 500), spool(21, 2, 300)]
     assert pick_spools({1: 100, 2: 100}, spools) == {1: 11, 2: 21}

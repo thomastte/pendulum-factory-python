@@ -2,6 +2,8 @@
 # Øivind's survey of the UiA makerspace on 2026-11-03. Reviewed and checked by Øivind.
 # Verified: tests/test_seed_stock.py; run twice against Spoolman 0.27.0 (first adds, then skips all);
 # Øivind used it to reset the stock on 2026-11-19.
+# 2026-11-19, written by Øivind himself: the density range rule in validate() (0.8 to 2.0 g/cm3).
+# Claude only set the task.
 """Load the filament stock into Spoolman from config/stock_seed.json.
 
 Run from the python/ folder, with Spoolman running (docker compose up -d):
@@ -49,6 +51,9 @@ def validate(filaments):
         for key, unit in (("density", "g/cm3"), ("diameter", "mm"), ("net_weight", "g")):
             if not _positive(f[key]):
                 problems.append(f"{label}: {key} must be a number above 0 {unit}, got {f[key]!r}")
+        if _positive(f["density"]) and not 0.8 <= f["density"] <= 2.0:
+            problems.append(f"{label}: density must be between 0.8 and 2.0 g/cm3 for plastic "
+                            f"filament, got {f['density']!r} (wrong decimal point?)")
         if not re.fullmatch(r"[0-9A-Fa-f]{6}([0-9A-Fa-f]{2})?", str(f["color_hex"]).lstrip("#")):
             problems.append(f"{label}: color_hex must be like 000000, got {f['color_hex']!r}")
         for grams in f.get("spools_g", []):

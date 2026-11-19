@@ -3,6 +3,8 @@
 # 2026-11-18: customer status lookup, Øivind's idea and spec (customers look up their own orders by name or
 # reference on the order page, without the operator page); code written by Claude at his request.
 # Verified: tests/test_app.py; Øivind ran it against Spoolman 0.27.0 and tested it in the browser.
+# 2026-11-19, written by Øivind himself: the status counts on the operator page (orders_page()).
+# Claude only set the task.
 """The web pages (plan §6). Start from the python/ folder with Spoolman running:
 
     python -m pendulum.app          then open http://localhost:5000
@@ -13,12 +15,12 @@
 """
 import logging
 import secrets
-from collections import defaultdict
+from collections import Counter, defaultdict
 from pathlib import Path
 
 from flask import Flask, abort, flash, redirect, render_template, request, send_from_directory, url_for
 
-from pendulum.processing import (DONE, ORDERS_DIR, OUTPUT_DIR, PARTS, POSTPONED, REJECTED, Order,
+from pendulum.processing import (DONE, ORDERS_DIR, OUTPUT_DIR, PARTS, POSTPONED, RECEIVED, REJECTED, Order,
                                  OrderProcessor, check_input, load_orders, new_order_id)
 from pendulum.simulate import simulate
 from pendulum.stock import SpoolmanClient, StockUnavailable
@@ -135,7 +137,7 @@ def create_app(stock=None, functions=None, simulate_fn=simulate,
             filaments, offline = [], True
         return render_template("order.html", filaments=filaments, offline=offline, errors=errors, form=form,
                                ref=ref, found=found, DONE=DONE)
-
+    
     @app.route("/orders")
     def orders_page():
         try:
@@ -143,9 +145,12 @@ def create_app(stock=None, functions=None, simulate_fn=simulate,
         except StockUnavailable:
             filaments, offline = [], True
         orders = list(reversed(load_orders(orders_dir)))              # newest first
+        counts = Counter(o.status for o in orders)
+        status_counts = [(status, counts[status]) for status in (DONE, REJECTED, POSTPONED, RECEIVED)]
         return render_template("orders.html", orders=orders, filaments=filaments, offline=offline,
-                               DONE=DONE, REJECTED=REJECTED, POSTPONED=POSTPONED)
-
+                               DONE=DONE, REJECTED=REJECTED, POSTPONED=POSTPONED,
+                               status_counts=status_counts)
+    
     @app.post("/process")
     def process_orders():
         processed = processor.process_all()

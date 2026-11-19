@@ -1,4 +1,6 @@
 # AI-assisted (Claude, 2026-11-03): tests written by Claude. Reviewed, run and checked by Øivind.
+# 2026-11-19, written by Øivind himself: test_density_outside_the_plastic_range_is_a_problem.
+# Claude only set the task.
 """Tests for scripts/seed_stock.py. None of them need Spoolman: FakeSpoolman stands in for it."""
 import json
 
@@ -63,6 +65,13 @@ def test_density_zero_is_a_problem():
     problems = validate([entry(density=0.0)])
     assert len(problems) == 1 and "density" in problems[0]
 
+
+# Gjort sjæl.
+def test_density_outside_the_plastic_range_is_a_problem():
+    """A density of 12.3 is most likely 1.23 with the wrong decimal point."""
+    problems = validate([entry(density=12.3)])
+    assert len(problems) == 1 and "density" in problems[0]
+    assert validate([entry(density=1.23)]) == []
 
 def test_missing_field_is_a_problem():
     f = entry()
